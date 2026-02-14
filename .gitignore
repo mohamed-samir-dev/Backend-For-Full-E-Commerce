@@ -11,4 +11,5 @@ coverage/
 .nyc_output/
 dist/
 build/
-add.json
+addProduct.js
+createAdmin.js
