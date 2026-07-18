@@ -77,6 +77,17 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.checkEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ exists: false });
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    res.json({ exists: !!user });
+  } catch (error) {
+    res.status(500).json({ exists: false });
+  }
+};
+
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
