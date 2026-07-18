@@ -31,6 +31,8 @@ connectDB();
 // CORS: restrict in production (recommended)
 const allowedOrigins = [
   process.env.FRONTEND_URL, // e.g. https://full-ecomerce-gamma.vercel.app
+  'http://localhost:3000',
+  'http://localhost:3001',
 ].filter(Boolean).flatMap(url => url.split(',').map(u => u.trim()));
 
 app.use(
