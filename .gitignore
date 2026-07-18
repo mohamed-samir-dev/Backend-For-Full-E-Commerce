@@ -13,3 +13,4 @@ dist/
 build/
 createAdmin.js
 add.json
+seeds

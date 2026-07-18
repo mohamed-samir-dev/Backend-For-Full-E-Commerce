@@ -51,7 +51,7 @@ const productSchema = new mongoose.Schema({
   specificationsAr: { type: mongoose.Schema.Types.Mixed, default: {} },
   variants: [{ type: mongoose.Schema.Types.Mixed }],
   reviews: [{
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    userId: { type: mongoose.Schema.Types.Mixed },
     rating: { type: Number, min: 1, max: 5 },
     comment: String,
     approved: { type: Boolean, default: false },

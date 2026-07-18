@@ -6,7 +6,7 @@ const Product = require('./models/Product');
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB Connected');
   } catch (error) {
     console.error('MongoDB connection error:', error.message);
@@ -14,13 +14,14 @@ const connectDB = async () => {
   }
 };
 
-const productData = JSON.parse(fs.readFileSync(path.join(__dirname, 'add.json'), 'utf8'));
+const dataFile = process.argv[2] || 'add.json';
+const productData = JSON.parse(fs.readFileSync(path.join(__dirname, dataFile), 'utf8'));
 
 const addProduct = async () => {
   try {
     await connectDB();
     const products = Array.isArray(productData) ? productData : [productData];
-    const result = await Product.insertMany(products);
+    const result = await Product.insertMany(products, { ordered: false });
     console.log(`${result.length} product(s) added successfully`);
     process.exit(0);
   } catch (error) {

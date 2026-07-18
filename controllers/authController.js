@@ -7,7 +7,7 @@ const generateToken = (id) => {
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone, dateOfBirth } = req.body;
     
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, message: 'Please provide all required fields' });
@@ -27,11 +27,15 @@ exports.register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'User already exists' });
     }
 
-    const user = await User.create({ 
+    const userData = { 
       name: name.trim(), 
       email: email.toLowerCase().trim(), 
       password 
-    });
+    };
+    if (phone) userData.phone = phone.trim();
+    if (dateOfBirth) userData.dateOfBirth = dateOfBirth;
+
+    const user = await User.create(userData);
     
     const token = generateToken(user._id);
 
@@ -61,13 +65,27 @@ exports.login = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
     const token = generateToken(user._id);
     res.json({ success: true, token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+    // Always return success to prevent email enumeration
+    await User.findOne({ email: email.toLowerCase().trim() });
+    res.json({ success: true, message: 'If this email is registered, a reset link will be sent.' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
