@@ -315,10 +315,13 @@ exports.getReviews = async (req, res) => {
     }
     const reviewsWithUser = product.reviews
       .filter(review => review.approved || !review.userId)
-      .map(review => ({
-        ...review.toObject(),
-        user: review.userId || { name: review.toObject().name || 'Anonymous' }
-      }));
+      .map(review => {
+        const obj = review.toObject();
+        return {
+          ...obj,
+          user: review.userId || { name: obj.name || 'Anonymous' }
+        };
+      });
     res.json({ success: true, data: reviewsWithUser });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

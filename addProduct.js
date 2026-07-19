@@ -20,12 +20,19 @@ const productData = JSON.parse(fs.readFileSync(path.join(__dirname, dataFile), '
 const addProduct = async () => {
   try {
     await connectDB();
-    const products = Array.isArray(productData) ? productData : [productData];
+    const products = (Array.isArray(productData) ? productData : [productData]).map(p => ({
+      ...p,
+      sku: p.sku || p.slug
+    }));
     const result = await Product.insertMany(products, { ordered: false });
     console.log(`${result.length} product(s) added successfully`);
+    if (result.length === 0) console.log('No products inserted - possible duplicate slugs or skus');
     process.exit(0);
   } catch (error) {
     console.error('Error adding product:', error.message);
+    if (error.writeErrors) {
+      error.writeErrors.forEach(e => console.error('Write error:', e.errmsg || e.err?.errmsg));
+    }
     process.exit(1);
   }
 };

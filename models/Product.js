@@ -52,8 +52,10 @@ const productSchema = new mongoose.Schema({
   variants: [{ type: mongoose.Schema.Types.Mixed }],
   reviews: [{
     userId: { type: mongoose.Schema.Types.Mixed },
+    name: { type: String },
     rating: { type: Number, min: 1, max: 5 },
     comment: String,
+    date: { type: String },
     approved: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
   }],
