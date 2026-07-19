@@ -368,6 +368,31 @@ exports.addRating = async (req, res) => {
   }
 };
 
+exports.getFeaturedProducts = async (req, res) => {
+  try {
+    const distribution = [
+      { category: 'men', count: 3 },
+      { category: 'women', count: 2 },
+      { category: 'kids', count: 3 },
+      { category: 'electronics', count: 2 },
+    ];
+
+    const results = await Promise.all(
+      distribution.map(({ category, count }) =>
+        Product.aggregate([
+          { $match: { category: { $regex: new RegExp(`^${category}$`, 'i') }, availability: 'in_stock' } },
+          { $sample: { size: count } },
+        ])
+      )
+    );
+
+    const products = results.flat();
+    res.json({ success: true, data: products });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 exports.approveReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
