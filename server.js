@@ -16,6 +16,7 @@ const customerSayRoutes = require('./routes/customerSayRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const returnRoutes = require('./routes/returnRoutes');
 
 const app = express();
 
@@ -73,6 +74,7 @@ app.use('/api/customer-say', customerSayRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/returns', returnRoutes);
 
 // 404 handler (optional but nice)
 app.use((req, res) => {

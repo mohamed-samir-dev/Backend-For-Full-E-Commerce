@@ -18,23 +18,25 @@ const dataFile = process.argv[2] || 'add.json';
 const productData = JSON.parse(fs.readFileSync(path.join(__dirname, dataFile), 'utf8'));
 
 const addProduct = async () => {
-  try {
-    await connectDB();
-    const products = (Array.isArray(productData) ? productData : [productData]).map(p => ({
-      ...p,
-      sku: p.sku || p.slug
-    }));
-    const result = await Product.insertMany(products, { ordered: false });
-    console.log(`${result.length} product(s) added successfully`);
-    if (result.length === 0) console.log('No products inserted - possible duplicate slugs or skus');
-    process.exit(0);
-  } catch (error) {
-    console.error('Error adding product:', error.message);
-    if (error.writeErrors) {
-      error.writeErrors.forEach(e => console.error('Write error:', e.errmsg || e.err?.errmsg));
+  await connectDB();
+  const products = (Array.isArray(productData) ? productData : [productData]).map(p => ({
+    ...p,
+    sku: p.sku || p.slug,
+    colors: (p.colors || []).map(c => typeof c === 'string' ? { name: c, hex: '' } : c)
+  }));
+
+  let inserted = 0;
+  for (const product of products) {
+    try {
+      await Product.create(product);
+      console.log(`✅ Added: ${product.slug}`);
+      inserted++;
+    } catch (err) {
+      console.error(`❌ Skipped: ${product.slug} — ${err.message}`);
     }
-    process.exit(1);
   }
+  console.log(`\n${inserted}/${products.length} product(s) added successfully`);
+  process.exit(0);
 };
 
 addProduct();
