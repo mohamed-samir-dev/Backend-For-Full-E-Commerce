@@ -190,7 +190,7 @@ exports.getProducts = async (req, res) => {
         sortOptions.createdAt = -1;
     }
 
-    const cacheKey = `products_${JSON.stringify({ query, sortOptions, page, limit })}`;
+    const cacheKey = `products_${JSON.stringify({ ...req.query })}`;
     const cached = cache.get(cacheKey);
     if (cached) return res.json(cached);
 
