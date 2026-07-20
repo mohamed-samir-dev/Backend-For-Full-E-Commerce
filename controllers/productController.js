@@ -1,5 +1,8 @@
 const Product = require('../models/Product');
 const mongoose = require('mongoose');
+const NodeCache = require('node-cache');
+
+const cache = new NodeCache({ stdTTL: 60, checkperiod: 120 }); // cache لمدة 60 ثانية
 
 exports.createProduct = async (req, res) => {
   try {
@@ -187,14 +190,16 @@ exports.getProducts = async (req, res) => {
         sortOptions.createdAt = -1;
     }
 
-    const products = await Product.find(query)
-      .sort(sortOptions)
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    const cacheKey = `products_${JSON.stringify({ query, sortOptions, page, limit })}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return res.json(cached);
 
-    const count = await Product.countDocuments(query);
+    const [products, count] = await Promise.all([
+      Product.find(query).sort(sortOptions).limit(limit * 1).skip((page - 1) * limit),
+      Product.countDocuments(query)
+    ]);
 
-    res.json({ 
+    const response = { 
       success: true, 
       data: products, 
       totalPages: Math.ceil(count / limit), 
@@ -202,7 +207,10 @@ exports.getProducts = async (req, res) => {
       totalProducts: count,
       hasNextPage: page < Math.ceil(count / limit),
       hasPrevPage: page > 1
-    });
+    };
+
+    cache.set(cacheKey, response);
+    res.json(response);
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -256,6 +264,9 @@ exports.deleteProduct = async (req, res) => {
 // Get filter options dynamically from database
 exports.getFilterOptions = async (req, res) => {
   try {
+    const cached = cache.get('filter_options');
+    if (cached) return res.json(cached);
+
     const [categories, brands, sizes, colors, materials, shops, productTypes, secondTypes, secondTypesAr, thirdTypes, thirdTypesAr] = await Promise.all([
       Product.distinct('category'),
       Product.distinct('brand'),
@@ -284,7 +295,7 @@ exports.getFilterOptions = async (req, res) => {
     // Get availability options
     const availabilityOptions = ['in_stock', 'out_of_stock', 'pre_order'];
 
-    res.json({
+    const response = {
       success: true,
       data: {
         categories: categories.filter(Boolean).sort(),
@@ -301,7 +312,10 @@ exports.getFilterOptions = async (req, res) => {
         priceRange: priceRange[0] || { minPrice: 0, maxPrice: 1000 },
         availability: availabilityOptions
       }
-    });
+    };
+
+    cache.set('filter_options', response, 300); // cache لمدة 5 دقايق
+    res.json(response);
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -370,6 +384,9 @@ exports.addRating = async (req, res) => {
 
 exports.getFeaturedProducts = async (req, res) => {
   try {
+    const cached = cache.get('featured_products');
+    if (cached) return res.json(cached);
+
     const distribution = [
       { category: 'men', count: 3 },
       { category: 'women', count: 2 },
@@ -387,7 +404,9 @@ exports.getFeaturedProducts = async (req, res) => {
     );
 
     const products = results.flat();
-    res.json({ success: true, data: products });
+    const response = { success: true, data: products };
+    cache.set('featured_products', response, 120); // cache لمدة دقيقتين
+    res.json(response);
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
