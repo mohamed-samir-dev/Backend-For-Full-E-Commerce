@@ -195,7 +195,7 @@ exports.getProducts = async (req, res) => {
     if (cached) return res.json(cached);
 
     const [products, count] = await Promise.all([
-      Product.find(query).sort(sortOptions).limit(limit * 1).skip((page - 1) * limit),
+      Product.find(query).sort(sortOptions).limit(limit * 1).skip((page - 1) * limit).lean(),
       Product.countDocuments(query)
     ]);
 
