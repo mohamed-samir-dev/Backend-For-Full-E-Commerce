@@ -210,6 +210,7 @@ exports.getProducts = async (req, res) => {
     };
 
     cache.set(cacheKey, response);
+    res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=60');
     res.json(response);
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
